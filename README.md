@@ -61,4 +61,5 @@ Expected response format:
 Developed by **Kerem Caliskan** as a task submission for the DesignRush recruitment process.
 
 ---
+
 For any questions or walkthrough requests, feel free to reach out!
