@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MatchMate: AI-Powered Agency Matching Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 80vh;
+    }
+    h1 {
+      text-align: center;
+      color: #ffffff;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      margin-bottom: 0;
+    }
+    h3 {
+      text-align: center;
+      color: #f0f0f0;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+      margin-bottom: 30px;
+    }
+    .chat-container {
+      width: 100%;
+      max-width: 500px;
+      background-color: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 1s ease-in;
+      min-height: 200px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      max-height: 320px;
+    }
+    .message {
+      margin: 10px 0;
+      padding: 10px 15px;
+      border-radius: 20px;
+      max-width: 70%;
+      transition: all 0.3s ease;
+    }
+    .user {
+      background-color: #c3f0ca;
+      align-self: flex-end;
+      text-align: right;
+      margin-right: 10px;
+    }
+    .bot {
+      background-color: #e1e4f2;
+      align-self: flex-start;
+      text-align: left;
+      position: relative;
+      padding-left: 15px;
+      margin-left: 45px; /* Space for the avatar */
+    }
+    .bot::before {
+      content: "";
+      position: absolute;
+      left: -40px;
+      top: 5px; /* Adjust vertical position */
+      width: 32px;
+      height: 32px;
+      background-image: url('bot-avatar.svg');
+      background-size: cover;
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      border: 2px solid white; /* Add white border for better appearance */
+    }
+    .input-container {
+      display: flex;
+      background: #f1f3f6;
+      border-radius: 30px;
+      padding: 5px;
+    }
+    input {
+      flex-grow: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      outline: none;
+    }
+    button {
+      margin-left: 10px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #2575fc;
+      color: #fff;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #6a11cb;
+    }
+  </style>
+</head>
+<body>
+  <h1>MatchMate</h1>
+  <h3>AI-Powered Agency Matching Assistant</h3>
+  <div class="chat-container">
+    <div class="messages" id="chatWindow"></div>
+    <div class="input-container">
+      <input type="text" id="userInput" placeholder="Type your message...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chatWindow = document.getElementById('chatWindow');
+    const apiUrl = 'https://api.designrush.com/matchmate';
+
+    /*
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(userInputs)
+    })
+    */
+
+    let userInputs = {};
+
+    const flowSteps = {
+      0: {
+        prompt: "Hi there! I'm MatchMate. What industry are you in?",
+        handler: (input) => { userInputs.industry = input; }
+      },
+      1: {
+        prompt: "Got it! What's your approximate budget range?",
+        handler: (input) => { userInputs.budget = input; }
+      },
+      2: {
+        prompt: "Thanks. What specific services are you looking for (e.g., branding, SEO, web development)?",
+        handler: (input) => { userInputs.services = input; }
+      },
+      3: {
+        prompt: "Noted. Do you have a preferred location for the agency?",
+        handler: (input) => { userInputs.location = input; }
+      },
+    };
+
+    let currentStep = 0;
+
+    function addMessage(text, sender) {
+      const message = document.createElement('div');
+      message.className = `message ${sender}`;
+      message.innerHTML = text;
+      chatWindow.appendChild(message);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('userInput');
+      const userText = input.value.trim();
+      if (!userText) return;
+
+      addMessage(userText, 'user');
+      if (flowSteps[currentStep] && flowSteps[currentStep].handler) {
+        flowSteps[currentStep].handler(userText);
+      }
+
+      input.value = '';
+
+      setTimeout(() => {
+        currentStep++;
+        if (flowSteps[currentStep]) {
+          addMessage(flowSteps[currentStep].prompt, 'bot');
+        } else {
+          simulateEmbeddingMatch();
+        }
+      }, 600);
+    }
+
+    function simulateEmbeddingMatch() {
+      addMessage("Thanks for the info! Let me find the best matches for you using smart AI matching...", 'bot');
+
+      const agencyDB = [
+        { name: "CreativeHaus", specialty: "Branding", price_range: "$10k–$25k", tags: ["branding", "design", "creative"] },
+        { name: "RankBoosters", specialty: "SEO", price_range: "$5k–$15k", tags: ["seo", "marketing", "search"] },
+        { name: "WebWorks", specialty: "Web Dev", price_range: "$8k–$20k", tags: ["development", "frontend", "backend"] },
+      ];
+
+      const userQuery = `${userInputs.services} ${userInputs.industry}`.toLowerCase();
+      const results = agencyDB.map(agency => {
+        let score = 0;
+        agency.tags.forEach(tag => {
+          if (userQuery.includes(tag)) score++;
+        });
+        return { ...agency, score };
+      }).sort((a, b) => b.score - a.score);
+
+      let recommendations = '<ul>';
+      results.forEach(match => {
+        recommendations += `<li>${match.name} - ${match.specialty}, ${match.price_range}</li>`;
+      });
+      recommendations += '</ul>';
+      addMessage(`Here are some recommended agencies for you based on vector-style semantic matching:<br>${recommendations}`, 'bot');
+    }
+
+    window.onload = () => {
+      // Add event listener for Enter key press
+      document.getElementById('userInput').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
+      
+      addMessage(flowSteps[currentStep].prompt, 'bot');
+    }
+  </script>
+</body>
+</html>
